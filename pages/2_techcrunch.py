@@ -436,7 +436,7 @@ if st.session_state.tc_final_summary_df is not None and not st.session_state.tc_
 
         categories_str = "_".join(selected_categories) if selected_categories else "all"
         
-        file_name = f"{current_date}_techtimes_{categories_str}.csv"
+        file_name = f"{current_date}_TechTimes_{categories_str}.csv"
         
         csv_summary = st.session_state.tc_final_summary_df.to_csv(index=False, encoding="utf-8-sig", doublequote=True).encode("utf-8-sig")
 
