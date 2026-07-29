@@ -257,17 +257,17 @@ with st.sidebar:
     st.header("⚙️ 系統設定")
     api_key_input = st.text_input("Gemini API Key", type="password")
 
-# 初始化 session_state
-if 'category_dict' not in st.session_state:
-    st.session_state.category_dict = {}
-if 'article_urls' not in st.session_state:
-    st.session_state.article_urls = []
-if 'scraped_df' not in st.session_state:
-    st.session_state.scraped_df = None
-if 'scraped_data_list' not in st.session_state:
-    st.session_state.scraped_data_list = []
-if 'final_summary_df' not in st.session_state:
-    st.session_state.final_summary_df = None
+# 初始化 session_state (TechCrunch 專用)
+if 'tc_category_dict' not in st.session_state:
+    st.session_state.tc_category_dict = {}
+if 'tc_article_urls' not in st.session_state:
+    st.session_state.tc_article_urls = []
+if 'tc_scraped_df' not in st.session_state:
+    st.session_state.tc_scraped_df = None
+if 'tc_scraped_data_list' not in st.session_state:
+    st.session_state.tc_scraped_data_list = []
+if 'tc_final_summary_df' not in st.session_state:
+    st.session_state.tc_final_summary_df = None
 
 st.title("自動化爬蟲長摘系統：TechCrunch.com")
 
@@ -285,7 +285,7 @@ with col2:
             if "error" in cat_dict:
                 st.error(f"請求失敗：{cat_dict['error']}")
             elif cat_dict:
-                st.session_state.category_dict = cat_dict
+                st.session_state.tc_category_dict = cat_dict
                 st.success(f"成功取得 {len(cat_dict)} 個板塊。")
             else:
                 st.warning("未抓取到任何板塊資訊。")
@@ -293,18 +293,18 @@ with col2:
 # ------------------------------------------
 # 第二階段：選擇特定板塊進行爬取
 # ------------------------------------------
-if st.session_state.category_dict:
+if st.session_state.tc_category_dict:
     st.divider()
     
-    available_categories = list(st.session_state.category_dict.keys())
+    available_categories = list(st.session_state.tc_category_dict.keys())
     selected_categories = st.multiselect("請選擇欲爬取的板塊（可複選）", options=available_categories)
     
     if selected_categories:
-        st.session_state.article_urls = []
+        st.session_state.tc_article_urls = []
         for cat in selected_categories:
-            st.session_state.article_urls.extend(st.session_state.category_dict[cat])
+            st.session_state.tc_article_urls.extend(st.session_state.tc_category_dict[cat])
             
-        st.write(f"在選定的板塊中，共找到 **{len(st.session_state.article_urls)}** 篇文章。")
+        st.write(f"在選定的板塊中，共找到 **{len(st.session_state.tc_article_urls)}** 篇文章。")
         scrape_mode = st.radio("請選擇爬取模式：", ["Beta (僅爬取第 1 篇測試)", "All (爬取所有選定文章)"])
         
         # 將開始與中斷按鈕並排
@@ -315,10 +315,10 @@ if st.session_state.category_dict:
             
         with col_start:
             if st.button("開始爬取", type="primary", use_container_width=True):
-                urls_to_scrape = st.session_state.article_urls[:1] if "Beta" in scrape_mode else st.session_state.article_urls
+                urls_to_scrape = st.session_state.tc_article_urls[:1] if "Beta" in scrape_mode else st.session_state.tc_article_urls
                 
                 st.session_state.scraped_data_list = []
-                st.session_state.scraped_df = None
+                st.session_state.tc_scraped_df = None
                 
                 status_text = st.empty()
                 progress_bar = st.progress(0)
@@ -331,24 +331,24 @@ if st.session_state.category_dict:
                     data = scrape_techcrunch_with_refs(target_url, status_text=status_text, current_article_info=current_info)
                     if data:
                         st.session_state.scraped_data_list.extend(data)
-                        st.session_state.scraped_df = pd.DataFrame(st.session_state.scraped_data_list)
+                        st.session_state.tc_scraped_df = pd.DataFrame(st.session_state.scraped_data_list)
                         
                     progress_bar.progress(i / len(urls_to_scrape))
                     time.sleep(3)
                     
                 status_text.success("內文與參考資料爬取完成！")
 
-if st.session_state.scraped_df is not None and not st.session_state.scraped_df.empty:
+if st.session_state.tc_scraped_df is not None and not st.session_state.tc_scraped_df.empty:
     st.divider()
     st.markdown("### 爬取結果預覽")
-    st.dataframe(st.session_state.scraped_df, use_container_width=True)
+    st.dataframe(st.session_state.tc_scraped_df, use_container_width=True)
 
 # ------------------------------------------
 # 第三階段：LLM 生成長篇摘要與自動換行
 # ------------------------------------------
-if st.session_state.scraped_df is not None and not st.session_state.scraped_df.empty:
+if st.session_state.tc_scraped_df is not None and not st.session_state.tc_scraped_df.empty:
     st.divider()
-    st.write(f"已準備好 **{st.session_state.scraped_df['主文章網址'].nunique()}** 個主題的資料可供摘要。")
+    st.write(f"已準備好 **{st.session_state.tc_scraped_df['主文章網址'].nunique()}** 個主題的資料可供摘要。")
     
     col_sum_start, col_sum_stop = st.columns(2)
     
@@ -363,7 +363,7 @@ if st.session_state.scraped_df is not None and not st.session_state.scraped_df.e
             else:
                 try:
                     client = genai.Client(api_key=api_key_input)
-                    df_combined_all = st.session_state.scraped_df
+                    df_combined_all = st.session_state.tc_scraped_df
                     
                     summary_status = st.empty()
                     summary_progress = st.progress(0)
@@ -415,7 +415,7 @@ if st.session_state.scraped_df is not None and not st.session_state.scraped_df.e
                             if col in dated_df.columns:
                                 dated_df[col] = dated_df[col].apply(lambda x: wrap_text(x, width=30))
                         
-                        st.session_state.final_summary_df = dated_df
+                        st.session_state.tc_final_summary_df = dated_df
                         st.success("格式處理完成！")
                         
                 except Exception as e:
@@ -424,7 +424,7 @@ if st.session_state.scraped_df is not None and not st.session_state.scraped_df.e
 # ------------------------------------------
 # 第四階段：顯示與下載結果
 # ------------------------------------------
-if st.session_state.final_summary_df is not None and not st.session_state.final_summary_df.empty:
+if st.session_state.tc_final_summary_df is not None and not st.session_state.tc_final_summary_df.empty:
     st.divider()
     
     col_title, col_dl = st.columns([2, 1])
@@ -435,7 +435,7 @@ if st.session_state.final_summary_df is not None and not st.session_state.final_
         current_date = datetime.now().strftime('%Y%m%d')
         file_name = f"{current_date}_techcrunch.csv"
         
-        csv_summary = st.session_state.final_summary_df.to_csv(index=False, encoding="utf-8-sig", doublequote=True).encode("utf-8-sig")
+        csv_summary = st.session_state.tc_final_summary_df.to_csv(index=False, encoding="utf-8-sig", doublequote=True).encode("utf-8-sig")
 
         st.download_button(
             label="📥 下載 CSV 檔案", 
@@ -445,10 +445,10 @@ if st.session_state.final_summary_df is not None and not st.session_state.final_
             use_container_width=True
         )
 
-    st.dataframe(st.session_state.final_summary_df, use_container_width=True)
+    st.dataframe(st.session_state.tc_final_summary_df, use_container_width=True)
     
     st.markdown("### 摘要預覽")
-    for i, row in st.session_state.final_summary_df.iterrows():
+    for i, row in st.session_state.tc_final_summary_df.iterrows():
         with st.expander(f"📑 {row['標題']} (原標題: {row['英文標題']})"):
             st.markdown(f"**【關鍵字】** {row['關鍵字']}")
             st.markdown("---")
