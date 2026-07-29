@@ -288,7 +288,7 @@ if st.session_state.category_dict:
             st.session_state.article_urls.extend(st.session_state.category_dict[cat])
             
         st.write(f"在選定的板塊中，共找到 **{len(st.session_state.article_urls)}** 篇文章。")
-        scrape_mode = st.radio("請選擇爬取模式：", ["Beta (僅爬取前 2 篇測試)", "All (爬取所有選定文章)"])
+        scrape_mode = st.radio("請選擇爬取模式：", ["Beta (僅爬取第 1 篇測試)", "All (爬取所有選定文章)"])
         
         # 將開始與中斷按鈕並排
         col_start, col_stop = st.columns(2)
@@ -299,7 +299,7 @@ if st.session_state.category_dict:
             
         with col_start:
             if st.button("開始爬取", type="primary", use_container_width=True):
-                urls_to_scrape = st.session_state.article_urls[:2] if "Beta" in scrape_mode else st.session_state.article_urls
+                urls_to_scrape = st.session_state.article_urls[:1] if "Beta" in scrape_mode else st.session_state.article_urls
                 
                 # 每次按下開始爬取，就清空先前的暫存資料
                 st.session_state.scraped_data_list = []
