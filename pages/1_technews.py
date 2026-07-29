@@ -298,7 +298,7 @@ if st.session_state.category_dict:
             st.button("中斷 / 重新開始", use_container_width=True)
             
         with col_start:
-            if st.button("2. 開始爬取", type="primary", use_container_width=True):
+            if st.button("開始爬取", type="primary", use_container_width=True):
                 urls_to_scrape = st.session_state.article_urls[:2] if "Beta" in scrape_mode else st.session_state.article_urls
                 
                 # 每次按下開始爬取，就清空先前的暫存資料
