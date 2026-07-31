@@ -205,7 +205,7 @@ with st.sidebar:
         st.session_state.serpapi_quota = None
 
     if serpapi_key:
-        if st.button("顯示 / 更新額度", use_container_width=True):
+        if st.button("顯示 / 更新額度（請於搜尋完成後再點擊刷新，否則會中斷搜尋）", use_container_width=True):
             try:
                 # 修正端點：必須加上 .json
                 url = f"https://serpapi.com/account.json?api_key={serpapi_key}"
@@ -360,17 +360,6 @@ if run_button:
 
         df_all_news = df_all_news.drop_duplicates(subset=['link'])
         news_results = df_all_news.to_dict('records')
-
-        try:
-            url_quota = f"https://serpapi.com/account.json?api_key={serpapi_key}"
-            res_quota = requests.get(url_quota, timeout=10)
-            if res_quota.status_code == 200:
-                data_quota = res_quota.json()
-                searches_left = data_quota.get("plan_searches_left", "未知")
-                total_searches = data_quota.get("plan_searches_limit", 1000)
-                st.session_state.serpapi_quota = f"{searches_left} / {total_searches}"
-        except Exception:
-            pass
 
         st.write(f"✅ 共抓取 {len(news_results)} 筆新聞連結")
 
