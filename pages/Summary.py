@@ -55,7 +55,7 @@ def wrap_text_smart(text, width):
 # ==========================================
 # LLM 處理函式
 # ==========================================
-def filter_llm(article_list, gemini_client):
+def filter_llm(article_list, gemini_client, model_name):
     prompt = f"""
     你是一個科技文獻審查員。請檢視以下清單。
     請依據以下標準審查：
@@ -80,7 +80,7 @@ def filter_llm(article_list, gemini_client):
     """
     try:
         response = gemini_client.models.generate_content(
-            model='gemini-3.5-flash-lite',
+            model=model_name,
             contents=prompt
         )
         clean_text = response.text.strip().replace('```json', '').replace('```', '')
@@ -89,7 +89,7 @@ def filter_llm(article_list, gemini_client):
         print(f"過濾失敗: {e}")
         return []
 
-def cluster_llm(article_list, gemini_client):
+def cluster_llm(article_list, gemini_client, model_name):
     prompt = f"""
     你是一位科技情報分析師。請閱讀以下 {len(article_list)} 篇新聞的完整內文。
     任務：將探討「同一個核心議題脈絡」或「具強烈關聯的延續性故事」的文章分在同一群。
@@ -116,7 +116,7 @@ def cluster_llm(article_list, gemini_client):
     """
     try:
         response = gemini_client.models.generate_content(
-            model='gemini-3.5-flash-lite',
+            model=model_name,
             contents=prompt
         )
         clean_text = response.text.strip().replace('```json', '').replace('```', '')
@@ -125,7 +125,7 @@ def cluster_llm(article_list, gemini_client):
         print(f"分群失敗: {e}")
         return []
 
-def long_summary(article_group, gemini_client):
+def long_summary(article_group, gemini_client, model_name):
     topic = article_group["主題名稱"]
     articles = article_group["articles"]
     cluster_urls = [art["url"] for art in articles]
@@ -149,7 +149,7 @@ def long_summary(article_group, gemini_client):
     """
     try:
         response = gemini_client.models.generate_content(
-            model="gemini-3.5-flash-lite",
+            model=model_name,
             contents=prompt
         )
         clean_json = response.text.strip().replace("```json", "").replace("```", "")
@@ -157,7 +157,7 @@ def long_summary(article_group, gemini_client):
     except Exception:
         return {}
 
-def short_summary(article, gemini_client):
+def short_summary(article, gemini_client, model_name):
     prompt = f"""
     你現在是科技文獻摘要專家。請根據內文生成以下 JSON 格式的繁體中文摘要：
     {{
@@ -178,7 +178,7 @@ def short_summary(article, gemini_client):
     """
     try:
         response = gemini_client.models.generate_content(
-            model="gemini-3.5-flash-lite",
+            model=model_name,
             contents=prompt
         )
         clean_json = response.text.strip().replace("```json", "").replace("```", "")
@@ -228,6 +228,12 @@ with st.sidebar:
 
     st.divider()
     gemini_key = st.text_input("Gemini API Key", type="password")
+    
+    selected_model = st.selectbox(
+        "選擇 Gemini 模型",
+        options=["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"],
+        index=0
+    )
 
 # ------------------------------------------
 # 搜尋條件設定與執行模式
@@ -398,7 +404,7 @@ if run_button:
             current_end = min(i + batch_size, len(scraped_articles))
             filter_status_text.text(f"AI 正在過濾第 {i + 1} 到 {current_end} 篇文章...")
             
-            batch_result = filter_llm(batch, client_genai)
+            batch_result = filter_llm(batch, client_genai, selected_model)
             filter_results.extend(batch_result)
             progress_bar_filter.progress(min(1.0, (i + batch_size) / len(scraped_articles)))
             time.sleep(5)
@@ -433,7 +439,7 @@ if run_button:
                 "date": row["date"]
             })
         
-        clusters = cluster_llm(article_list, client_genai)
+        clusters = cluster_llm(article_list, client_genai, selected_model)
         st.write(f"✅ 總共分成 {len(clusters)} 群")
 
         long_articles = []
@@ -460,7 +466,7 @@ if run_button:
             long_status = st.empty()
             for i, group in enumerate(long_articles, start=1):
                 long_status.text(f"正在進行長摘：{i}/{len(long_articles)}")
-                res = long_summary(group, client_genai)
+                res = long_summary(group, client_genai, selected_model)
                 if res:
                     long_results.append(res)
                 progress_bar_long.progress(i / len(long_articles))
@@ -474,7 +480,7 @@ if run_button:
             short_status = st.empty()
             for i, article in enumerate(short_articles, start=1):
                 short_status.text(f"正在進行短摘：{i}/{len(short_articles)}")
-                res = short_summary(article, client_genai)
+                res = short_summary(article, client_genai, selected_model)
                 if res:
                     res["文章日期"] = article["date"]
                     res["參考連結"] = article["url"]
