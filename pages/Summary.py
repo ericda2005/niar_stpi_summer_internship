@@ -245,7 +245,7 @@ with col_start:
 
 if run_button:
     if not serpapi_key or not gemini_key:
-        st.error("請輸入 SerpApi 與 Gemini API 金鑰！")
+        st.error("請先在左側邊欄輸入 SerpApi 與 Gemini API Key")
         st.stop()
         
     keywords = [k.strip() for k in keyword_input.split(",") if k.strip()]
