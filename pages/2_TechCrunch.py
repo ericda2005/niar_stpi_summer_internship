@@ -359,7 +359,7 @@ if st.session_state.tc_scraped_df is not None and not st.session_state.tc_scrape
     with col_sum_start:
         if st.button("開始長摘", type="primary", use_container_width=True):
             if not api_key_input:
-                st.error("請先在左側邊欄輸入 Gemini API Key！")
+                st.error("請先在左側邊欄輸入 Gemini API Key")
             else:
                 try:
                     client = genai.Client(api_key=api_key_input)
