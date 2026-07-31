@@ -8,26 +8,6 @@ st.divider()
 st.markdown("### 網頁操作指南")
 st.markdown("歡迎使用本系統，請由左側邊欄選擇所需的功能頁面：")
 
-with st.sidebar:
-    st.header("⚙️ 額度查詢")
-    serpapi_key = st.text_input("輸入 SerpApi Key 查詢餘額", type="password")
-
-if serpapi_key:
-    try:
-        url = f"https://serpapi.com/account?api_key={serpapi_key}"
-        res = requests.get(url, timeout=10).json()
-        
-        if "error" in res:
-            st.error(f"查詢失敗：{res['error']}")
-        else:
-            searches_left = res.get("plan_searches_left", "未知")
-            total_searches = res.get("plan_searches_limit", 1000)
-            st.success(f"🔍 **SerpApi 本月剩餘額度**：{searches_left} / {total_searches} 次")
-    except Exception as e:
-        st.error("無法連線至 SerpApi 查詢額度，請檢查網路狀態。")
-else:
-    st.info("👈 請於左側邊欄輸入 SerpApi Key 以即時查看剩餘搜尋次數。")
-
 st.markdown("""
 <div style="background-color: #F7F7FF; color: #3c3c3c; padding: 20px; border-radius: 10px; margin-top: 10px;">
     <h4 style="margin-top: 0px;">一、TechTimes</h4>
@@ -74,3 +54,13 @@ st.markdown("""
     #</ol>
 #</div>
 #""", unsafe_allow_html=True)
+
+st.markdown("""
+<div style="background-color: #495867; color: #fcfcfc; padding: 20px; border-radius: 10px; margin-top: 10px;">
+    <h4 style="margin-top: 0px;">備註、API 額度與模型限制說明</h4>
+    <ul style="margin-bottom: 0px;">
+        <li><b>SerpApi</b>：免費版限制為每月 1000 次搜尋。</li>
+        <li><b>Gemini API</b>：目前 Google 未開放即時查詢額度的端點。免費版限制為每天 500 次請求 (RPD)。若遇到報錯，請於各功能頁面左側切換備用模型。</li>
+    </ul>
+</div>
+""", unsafe_allow_html=True)
