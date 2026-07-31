@@ -5,3 +5,4 @@ pandas
 trafilatura
 google-genai
 serpapi
+cloudscraper
