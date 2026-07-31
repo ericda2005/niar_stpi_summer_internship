@@ -203,7 +203,7 @@ def scrape_techcrunch_with_refs(main_url, status_text=None, current_article_info
 
     return articles_data
 
-def long_summary(client, article_group):
+def long_summary(client, article_group, model_name):
     main_title = article_group["主文章名稱"]
     articles = article_group["articles"]
     main_url = article_group["主文章網址"]
@@ -229,7 +229,7 @@ def long_summary(client, article_group):
     """
 
     response = client.models.generate_content(
-        model="gemini-3.5-flash-lite",
+        model=model_name,
         contents=prompt
     )
 
@@ -256,6 +256,11 @@ st.set_page_config(page_title="Techcrunch 自動化爬蟲與長摘", layout="wid
 with st.sidebar:
     st.header("⚙️ 系統設定")
     api_key_input = st.text_input("Gemini API Key", type="password")
+    selected_model = st.selectbox(
+        "選擇 Gemini 模型",
+        options=["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"],
+        index=0
+    )
 
 # 初始化 session_state (TechCrunch 專用)
 if 'tc_category_dict' not in st.session_state:
@@ -386,7 +391,7 @@ if st.session_state.tc_scraped_df is not None and not st.session_state.tc_scrape
                         summary_status.info(f"正在生成摘要 [{i}/{total_groups}]: {main_title}")
                         
                         try:
-                            summary_result = long_summary(client, article_group)
+                            summary_result = long_summary(client, article_group, selected_model)
                             all_summaries.append(summary_result)
                         except Exception as e:
                             st.error(f"摘要生成失敗 ({main_title}): {e}")
