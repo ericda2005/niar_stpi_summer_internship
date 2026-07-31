@@ -269,7 +269,7 @@ if 'tc_scraped_data_list' not in st.session_state:
 if 'tc_final_summary_df' not in st.session_state:
     st.session_state.tc_final_summary_df = None
 
-st.title("自動化爬蟲長摘系統：TechCrunch.com")
+st.title("首頁自動化爬蟲長摘：TechCrunch.com")
 
 # ------------------------------------------
 # 第一階段：獲取首頁板塊與文章網址
