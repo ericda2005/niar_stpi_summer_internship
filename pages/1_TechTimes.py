@@ -186,7 +186,7 @@ def scrape_techtimes_with_refs(main_url, status_text=None, current_article_info=
 
     return articles_data
 
-def long_summary(article_group, client):
+def long_summary(article_group, client, model_name):
     main_title = article_group["主文章名稱"]
     articles = article_group["articles"]
     main_url = article_group["主文章網址"]
@@ -212,7 +212,7 @@ def long_summary(article_group, client):
     """
 
     response = client.models.generate_content(
-        model="gemini-3.5-flash-lite",
+        model=model_name,
         contents=prompt
     )
 
@@ -238,6 +238,11 @@ st.set_page_config(page_title="TechTimes 自動化爬蟲與長摘", layout="wide
 with st.sidebar:
     st.header("⚙️ 系統設定")
     api_key_input = st.text_input("Gemini API Key", type="password")
+    selected_model = st.selectbox(
+        "選擇 Gemini 模型",
+        options=["gemini-3.5-flash-lite", "gemini-1.5-flash", "gemini-1.5-pro"],
+        index=0
+    )
 
 # 初始化 session_state
 if 'category_dict' not in st.session_state:
@@ -372,7 +377,7 @@ if st.session_state.scraped_df is not None and not st.session_state.scraped_df.e
                     summary_status.info(f"正在生成摘要 [{i}/{total_groups}]: {main_title}")
                     
                     try:
-                        summary_result = long_summary(article_group, client)
+                        summary_result = long_summary(article_group, client, selected_model)
                         all_summaries.append(summary_result)
                     except Exception as e:
                         st.error(f"摘要生成失敗 ({main_title}): {e}")
