@@ -208,7 +208,7 @@ st.markdown("### 🔍 搜尋條件設定")
 col1, col2 = st.columns([2, 1])
 
 with col1:
-    keyword_input = st.text_input("輸入搜尋關鍵字 (多個請用半形逗號分隔)", value="artificial intelligence, robot")
+    keyword_input = st.text_input("輸入搜尋關鍵字 (多個請用半形逗號分隔)")
 
 with col2:
     # 設定預設值為過去7天到今天
