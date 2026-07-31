@@ -240,7 +240,7 @@ with st.sidebar:
     api_key_input = st.text_input("Gemini API Key", type="password")
     selected_model = st.selectbox(
         "選擇 Gemini 模型",
-        options=["gemini-3.5-flash-lite", "gemini-1.5-flash", "gemini-1.5-pro"],
+        options=["gemini-3.5-flash-lite", "gemini-3.1-flash"],
         index=0
     )
 
