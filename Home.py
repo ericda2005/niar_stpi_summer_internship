@@ -8,6 +8,26 @@ st.divider()
 st.markdown("### 網頁操作指南")
 st.markdown("歡迎使用本系統，請由左側邊欄選擇所需的功能頁面：")
 
+with st.sidebar:
+    st.header("⚙️ 額度查詢")
+    serpapi_key = st.text_input("輸入 SerpApi Key 查詢餘額", type="password")
+
+if serpapi_key:
+    try:
+        url = f"https://serpapi.com/account?api_key={serpapi_key}"
+        res = requests.get(url, timeout=10).json()
+        
+        if "error" in res:
+            st.error(f"查詢失敗：{res['error']}")
+        else:
+            searches_left = res.get("plan_searches_left", "未知")
+            total_searches = res.get("plan_searches_limit", 1000)
+            st.success(f"🔍 **SerpApi 本月剩餘額度**：{searches_left} / {total_searches} 次")
+    except Exception as e:
+        st.error("無法連線至 SerpApi 查詢額度，請檢查網路狀態。")
+else:
+    st.info("👈 請於左側邊欄輸入 SerpApi Key 以即時查看剩餘搜尋次數。")
+
 st.markdown("""
 <div style="background-color: #F7F7FF; color: #3c3c3c; padding: 20px; border-radius: 10px; margin-top: 10px;">
     <h4 style="margin-top: 0px;">一、TechTimes</h4>
@@ -15,6 +35,7 @@ st.markdown("""
         <li>按下搜尋鍵 ➡️ 抓取 Techtimes.com 首頁中不同板塊的文章</li>
         <li>選擇要進行長篇摘要的板塊</li>
         <li>需於左側邊欄輸入 <span style="color: #fe5f55; font-weight: bold;">Gemini API Key</span>。</li>
+        <li>
     </ol>
 </div>
 """, unsafe_allow_html=True)
@@ -41,16 +62,15 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# 使用 HTML 與 CSS 自訂灰色底色與圓角區塊
-st.markdown("""
-<div style="background-color: #495867; color: #fcfcfc; padding: 20px; border-radius: 10px; margin-top: 10px;">
-    <h4 style="margin-top: 0px;">四、通用操作步驟</h4>
-    <ol style="margin-bottom: 0px;">
-        <li>由左側邊欄切換至目標功能頁面。</li>
-        <li>展開左側邊欄的「⚙️ 系統設定」，確認 API Key 已輸入。</li>
-        <li>依據頁面指示設定搜尋關鍵字、網址或日期區間。</li>
-        <li>點擊執行按鈕，系統將自動進行爬取與 AI 分析。</li>
-        <li>處理完成後，可於頁面最下方檢視詳細的視覺化預覽，或直接點擊按鈕下載 CSV 檔。</li>
-    </ol>
-</div>
-""", unsafe_allow_html=True)
+#st.markdown("""
+#<div style="background-color: #495867; color: #fcfcfc; padding: 20px; border-radius: 10px; margin-top: 10px;">
+    #<h4 style="margin-top: 0px;">四、通用操作步驟</h4>
+    #<ol style="margin-bottom: 0px;">
+        #<li>由左側邊欄切換至目標功能頁面。</li>
+        #<li>展開左側邊欄的「⚙️ 系統設定」，確認 API Key 已輸入。</li>
+        #<li>依據頁面指示設定搜尋關鍵字、網址或日期區間。</li>
+        #<li>點擊執行按鈕，系統將自動進行爬取與 AI 分析。</li>
+        #<li>處理完成後，可於頁面最下方檢視詳細的視覺化預覽，或直接點擊按鈕下載 CSV 檔。</li>
+    #</ol>
+#</div>
+#""", unsafe_allow_html=True)
