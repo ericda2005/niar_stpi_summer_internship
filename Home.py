@@ -2,32 +2,55 @@ import streamlit as st
 
 st.set_page_config(page_title="Home", layout="wide")
 
-st.title("國研院科政中心—115年度暑期實習計畫")
+st.title("國研院科政中心：115年度暑期實習計畫")
 st.divider()
 
 st.markdown("### 網頁操作指南")
+st.markdown("歡迎使用本系統，請由左側邊欄選擇所需的功能頁面：")
+
 st.markdown("""
-歡迎使用本系統，請由左側邊欄選擇所需的功能頁面：
+<div style="background-color: #495867; color: #fcfcfc; padding: 20px; border-radius: 10px; margin-top: 10px;">
+    <h4 style="margin-top: 0px;">一、TechTimes</h4>
+    <ol style="margin-bottom: 0px;">
+        <li>按下搜尋鍵 ➡️ 抓取 Techtimes.com 首頁中不同板塊的文章</li>
+        <li>選擇要進行長篇摘要的板塊</li>
+        <li>需於左側邊欄輸入 :blue[Gemini API Key]</li>
+    </ol>
+</div>
+""", unsafe_allow_html=True)
 
-**一、TechTimes**
-* 按下搜尋鍵➡️抓取 Techtimes.com 首頁中不同板塊的文章
-* 選擇要進行長篇摘要的板塊
-* 需於左側邊欄輸入 Gemini API Key。
+st.markdown("""
+<div style="background-color: #577399; color: #fcfcfc; padding: 20px; border-radius: 10px; margin-top: 10px;">
+    <h4 style="margin-top: 0px;">二、TechCrunch</h4>
+    <ol style="margin-bottom: 0px;">
+        <li>按下搜尋鍵 ➡️ 抓取 Techcrunch.com 首頁中不同板塊的文章</li>
+        <li>選擇要進行長篇摘要的板塊</li>
+        <li>需於左側邊欄輸入 :blue[Gemini API Key]</li>
+    </ol>
+</div>
+""", unsafe_allow_html=True)
 
-**二、TechCrunch**
-* 按下搜尋鍵➡️抓取 Techcrunch.com 首頁中不同板塊的文章
-* 選擇要進行長篇摘要的板塊
-* 需於左側邊欄輸入 Gemini API Key。
+st.markdown("""
+<div style="background-color: #BDD5EA; color: #3c3c3c; padding: 20px; border-radius: 10px; margin-top: 10px;">
+    <h4 style="margin-top: 0px;">三、Summary</h4>
+    <ol style="margin-bottom: 0px;">
+        <li>支援自訂關鍵字與日期範圍的 Google News 搜尋。</li>
+        <li>自動進行文章過濾、分群，並產出具關連性之長篇摘要與單一短篇摘要。</li>
+        <li>需於左側邊欄輸入 :orange[SerpApi Key] 與 :orange[Gemini API Key]。</li>
+    </ol>
+</div>
+""", unsafe_allow_html=True)
 
-**三、Summary**
-* 支援自訂關鍵字與日期範圍的 Google News搜尋。
-* 自動進行文章過濾、分群，並產出具關連性之長篇摘要與單一短篇摘要。
-* 需於左側邊欄輸入 SerpApi Key 與 Gemini API Key。
-
-**四、通用操作步驟**
-1. 由左側邊欄切換至目標功能頁面。
-2. 展開左側邊欄的「⚙️ 系統設定」，確認 API 金鑰已輸入。
-3. 依據頁面指示設定搜尋關鍵字、網址或日期區間。
-4. 點擊執行按鈕，系統將自動進行爬取與 AI 分析。
-5. 處理完成後，可於頁面最下方檢視詳細的視覺化預覽，或直接點擊按鈕下載 CSV 檔。
-""")
+# 使用 HTML 與 CSS 自訂灰色底色與圓角區塊
+st.markdown("""
+<div style="background-color: #F7F7FF; color: #3c3c3c; padding: 20px; border-radius: 10px; margin-top: 10px;">
+    <h4 style="margin-top: 0px;">四、通用操作步驟</h4>
+    <ol style="margin-bottom: 0px;">
+        <li>由左側邊欄切換至目標功能頁面。</li>
+        <li>展開左側邊欄的「⚙️ 系統設定」，確認 API 金鑰已輸入。</li>
+        <li>依據頁面指示設定搜尋關鍵字、網址或日期區間。</li>
+        <li>點擊執行按鈕，系統將自動進行爬取與 AI 分析。</li>
+        <li>處理完成後，可於頁面最下方檢視詳細的視覺化預覽，或直接點擊按鈕下載 CSV 檔。</li>
+    </ol>
+</div>
+""", unsafe_allow_html=True)
