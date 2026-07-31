@@ -198,6 +198,8 @@ if "results_dict" not in st.session_state:
 # 側邊欄：設定 API Key
 with st.sidebar:
     st.header("⚙️ 系統設定")
+
+    serpapi_key = st.text_input("SerpApi Key", type="password")
     if "serpapi_quota" not in st.session_state:
         st.session_state.serpapi_quota = None
 
