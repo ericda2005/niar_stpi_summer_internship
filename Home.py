@@ -57,7 +57,7 @@ st.markdown("""
 
 st.markdown("""
 <div style="background-color: #495867; color: #fcfcfc; padding: 20px; border-radius: 10px; margin-top: 10px;">
-    <h4 style="margin-top: 0px;">備註、API 額度與模型限制說明</h4>
+    <h4 style="margin-top: 0px;">備註、API 額度說明</h4>
     <ul style="margin-bottom: 0px;">
         <li><b>SerpApi</b>
             <ul>
@@ -66,7 +66,7 @@ st.markdown("""
         </li>
         <li style="margin-top: 10px;"><b>Gemini API</b>
             <ul>
-                <li>3.5-flash-lite：每天 500 次請求 (RPD)。</li>
+                <li>3.5-flash-lite（預設）：每天 500 次請求 (RPD)。</li>
                 <li>3.1-flash-lite：每天 500 次請求 (RPD)。</li>
             </ul>
         </li>
