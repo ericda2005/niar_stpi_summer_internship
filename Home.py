@@ -9,41 +9,41 @@ st.markdown("### 網頁操作指南")
 st.markdown("歡迎使用本系統，請由左側邊欄選擇所需的功能頁面：")
 
 st.markdown("""
-<div style="background-color: #495867; color: #fcfcfc; padding: 20px; border-radius: 10px; margin-top: 10px;">
+<div style="background-color: #F7F7FF; color: #3c3c3c; padding: 20px; border-radius: 10px; margin-top: 10px;">
     <h4 style="margin-top: 0px;">一、TechTimes</h4>
     <ol style="margin-bottom: 0px;">
         <li>按下搜尋鍵 ➡️ 抓取 Techtimes.com 首頁中不同板塊的文章</li>
         <li>選擇要進行長篇摘要的板塊</li>
-        <li>需於左側邊欄輸入 :blue[Gemini API Key]</li>
-    </ol>
-</div>
-""", unsafe_allow_html=True)
-
-st.markdown("""
-<div style="background-color: #577399; color: #fcfcfc; padding: 20px; border-radius: 10px; margin-top: 10px;">
-    <h4 style="margin-top: 0px;">二、TechCrunch</h4>
-    <ol style="margin-bottom: 0px;">
-        <li>按下搜尋鍵 ➡️ 抓取 Techcrunch.com 首頁中不同板塊的文章</li>
-        <li>選擇要進行長篇摘要的板塊</li>
-        <li>需於左側邊欄輸入 :blue[Gemini API Key]</li>
+        <li>需於左側邊欄輸入 <span style="color: #fe5f55; font-weight: bold;">Gemini API Key</span>。</li>
     </ol>
 </div>
 """, unsafe_allow_html=True)
 
 st.markdown("""
 <div style="background-color: #BDD5EA; color: #3c3c3c; padding: 20px; border-radius: 10px; margin-top: 10px;">
+    <h4 style="margin-top: 0px;">二、TechCrunch</h4>
+    <ol style="margin-bottom: 0px;">
+        <li>按下搜尋鍵 ➡️ 抓取 Techcrunch.com 首頁中不同板塊的文章</li>
+        <li>選擇要進行長篇摘要的板塊</li>
+        <li>需於左側邊欄輸入 <span style="color: #fe5f55; font-weight: bold;">Gemini API Key</span>。</li>
+    </ol>
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<div style="background-color: #577399; color: #fcfcfc; padding: 20px; border-radius: 10px; margin-top: 10px;">
     <h4 style="margin-top: 0px;">三、Summary</h4>
     <ol style="margin-bottom: 0px;">
         <li>支援自訂關鍵字與日期範圍的 Google News 搜尋。</li>
         <li>自動進行文章過濾、分群，並產出具關連性之長篇摘要與單一短篇摘要。</li>
-        <li>需於左側邊欄輸入 :orange[SerpApi Key] 與 :orange[Gemini API Key]。</li>
+        <li>需於左側邊欄輸入  <span style="color: #fe5f55; font-weight: bold;">SerpApi API Key</span> 與  <span style="color: #fe5f55; font-weight: bold;">Gemini API Key</span>。</li>
     </ol>
 </div>
 """, unsafe_allow_html=True)
 
 # 使用 HTML 與 CSS 自訂灰色底色與圓角區塊
 st.markdown("""
-<div style="background-color: #F7F7FF; color: #3c3c3c; padding: 20px; border-radius: 10px; margin-top: 10px;">
+<div style="background-color: #495867; color: #fcfcfc; padding: 20px; border-radius: 10px; margin-top: 10px;">
     <h4 style="margin-top: 0px;">四、通用操作步驟</h4>
     <ol style="margin-bottom: 0px;">
         <li>由左側邊欄切換至目標功能頁面。</li>
