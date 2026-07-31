@@ -9,7 +9,7 @@ import json
 from google import genai
 import re
 from datetime import datetime
-import request
+import requests
 
 # ==========================================
 # 輔助函式：文字換行處理
