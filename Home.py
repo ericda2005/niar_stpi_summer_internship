@@ -56,11 +56,16 @@ st.markdown("""
 #""", unsafe_allow_html=True)
 
 st.markdown("""
-<div style="background-color: #495867; color: #fcfcfc; padding: 20px; border-radius: 10px; margin-top: 10px;">
-    <h4 style="margin-top: 0px;">備註、API 額度與模型限制說明</h4>
-    <ul style="margin-bottom: 0px;">
-        <li><b>SerpApi</b>：免費版限制為每月 1000 次搜尋。</li>
-        <li><b>Gemini API</b>：目前 Google 未開放即時查詢額度的端點。免費版限制為每天 500 次請求 (RPD)。若遇到報錯，請於各功能頁面左側切換備用模型。</li>
-    </ul>
+<div style="background-color: var(--secondary-background-color); color: var(--text-color); padding: 20px; border-radius: 10px; border-left: 5px solid #ef4444; margin-bottom: 15px;">
+    <h4 style="margin-top: 0px;">四、備註、API 額度與模型限制說明</h4>
+    <div style="margin-bottom: 10px;">
+        <b>．SerpApi</b><br>
+        <span style="margin-left: 15px;">Starter Plan：每 30 天 1000 次搜尋額度。</span>
+    </div>
+    <div>
+        <b>．Gemini API</b><br>
+        <span style="margin-left: 15px;">3.5-flash-lite 為每天 500 次請求 (RPD)。</span><br>
+        <span style="margin-left: 15px;">3.1-flash-lite 為每天 500 次請求 (RPD)。</span>
+    </div>
 </div>
 """, unsafe_allow_html=True)
