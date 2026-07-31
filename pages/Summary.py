@@ -186,6 +186,30 @@ def short_summary(article, gemini_client, model_name):
     except Exception:
         return {}
 
+# ==========================================
+# 局部刷新元件 (Fragment)
+# ==========================================
+@st.fragment
+def quota_section(serpapi_key):
+    if st.button("顯示 / 更新額度", use_container_width=True):
+        try:
+            url = f"https://serpapi.com/account.json?api_key={serpapi_key}"
+            res = requests.get(url, timeout=10)
+            if res.status_code == 200:
+                data = res.json()
+                searches_left = data.get("plan_searches_left", "未知")
+                total_searches = data.get("plan_searches_limit", 1000)
+                st.session_state.serpapi_quota = f"{searches_left} / {total_searches}"
+            else:
+                st.session_state.serpapi_quota = f"查詢失敗 (狀態碼: {res.status_code})"
+        except Exception as e:
+            st.session_state.serpapi_quota = f"連線錯誤: {e}"
+    
+    if st.session_state.serpapi_quota:
+        if "失敗" in st.session_state.serpapi_quota or "錯誤" in st.session_state.serpapi_quota:
+            st.error(st.session_state.serpapi_quota)
+        else:
+            st.success(f"剩餘額度：{st.session_state.serpapi_quota}")
 
 # ==========================================
 # Streamlit 介面與主邏輯
@@ -193,38 +217,27 @@ def short_summary(article, gemini_client, model_name):
 st.set_page_config(page_title="AI 摘要系統", layout="wide")
 st.title("AI 摘要系統")
 
+# 初始化所有的 session_state 變數，確保畫面切換或更新時資料不會遺失
 if "results_dict" not in st.session_state:
     st.session_state.results_dict = {}
+if "df_long" not in st.session_state:
+    st.session_state.df_long = pd.DataFrame()
+if "df_short" not in st.session_state:
+    st.session_state.df_short = pd.DataFrame()
+if "used_keywords" not in st.session_state:
+    st.session_state.used_keywords = []
+if "serpapi_quota" not in st.session_state:
+    st.session_state.serpapi_quota = None
 
 # 側邊欄：設定 API Key
 with st.sidebar:
     st.header("⚙️ 系統設定")
 
     serpapi_key = st.text_input("SerpApi Key", type="password")
-    if "serpapi_quota" not in st.session_state:
-        st.session_state.serpapi_quota = None
-
+    
+    # 呼叫 Fragment 函式處理額度按鈕，避免中斷主程式
     if serpapi_key:
-        if st.button("顯示 / 更新額度（請於搜尋完成後再點擊刷新，否則會中斷搜尋）", use_container_width=True):
-            try:
-                # 修正端點：必須加上 .json
-                url = f"https://serpapi.com/account.json?api_key={serpapi_key}"
-                res = requests.get(url, timeout=10)
-                if res.status_code == 200:
-                    data = res.json()
-                    searches_left = data.get("plan_searches_left", "未知")
-                    total_searches = data.get("plan_searches_limit", 1000)
-                    st.session_state.serpapi_quota = f"{searches_left} / {total_searches}"
-                else:
-                    st.session_state.serpapi_quota = f"查詢失敗 (狀態碼: {res.status_code})"
-            except Exception as e:
-                st.session_state.serpapi_quota = f"連線錯誤: {e}"
-        
-        if st.session_state.serpapi_quota:
-            if "失敗" in st.session_state.serpapi_quota or "錯誤" in st.session_state.serpapi_quota:
-                st.error(st.session_state.serpapi_quota)
-            else:
-                st.success(f"剩餘額度：{st.session_state.serpapi_quota}")
+        quota_section(serpapi_key)
 
     st.divider()
     gemini_key = st.text_input("Gemini API Key", type="password")
@@ -245,19 +258,15 @@ with col1:
     keyword_input = st.text_input("輸入搜尋關鍵字 (多個請用半形逗號分隔)")
 
 with col2:
-    # 設定預設值為過去7天到今天
     today = datetime.now().date()
     last_week = today - pd.Timedelta(days=7)
     
-    # 使用 st.date_input 讓使用者選擇區間
     date_range = st.date_input("選擇查詢日期範圍", value=(last_week, today))
     
-    # 判斷使用者是否已經選好起始與結束日期
     if len(date_range) == 2:
         start_str = date_range[0].strftime("%m/%d/%Y")
         end_str = date_range[1].strftime("%m/%d/%Y")
     else:
-        # 若使用者只點了一天，將結束日期設與開始日期相同防錯
         start_str = date_range[0].strftime("%m/%d/%Y")
         end_str = start_str
         
@@ -286,19 +295,19 @@ if run_button:
     if not keywords:
         st.warning("請輸入至少一個搜尋關鍵字！")
         st.stop()
+        
+    st.session_state.used_keywords = keywords
 
     client_genai = genai.Client(api_key=gemini_key)
 
     with st.status("系統執行中，請稍候...", expanded=True) as status:
 
-        # --- 步驟 1：取得搜尋結果 ---
         st.write("步驟 1/6：取得搜尋結果")
         client_serp = serpapi.Client(api_key=serpapi_key)
         
         all_results = []
         fetch_status_text = st.empty()
         
-        # 依照模式決定要抓取的頁數
         pages_to_fetch = 1 if test_mode else 10
 
         for kw in keywords:
@@ -333,19 +342,15 @@ if run_button:
             st.warning("在此條件下未找到任何新聞。")
             st.stop()
 
-       # 整理 DataFrame 與日期格式轉換
         df_all_news = pd.DataFrame(all_results)
         
-        # 1. 篩選需要的欄位（加入檢查機制避免報錯）
         cols_to_keep = ['link', 'title', 'source', 'published_at', 'snippet']
         existing_cols = [col for col in cols_to_keep if col in df_all_news.columns]
         df_all_news = df_all_news[existing_cols]
 
-        # 2. 將 published_at 改名為 date
         if 'published_at' in df_all_news.columns:
             df_all_news = df_all_news.rename(columns={"published_at": "date"})
 
-        # 3. 進行時區轉換與格式化
         if 'date' in df_all_news.columns:
             df_all_news['date'] = pd.to_datetime(df_all_news['date'], errors='coerce')
             
@@ -354,6 +359,13 @@ if run_button:
             except TypeError:
                 df_all_news['date'] = df_all_news['date'].dt.tz_localize('UTC').dt.tz_convert('Asia/Taipei')
                 
+            # 新增嚴格日期過濾機制
+            start_date_obj = date_range[0]
+            end_date_obj = date_range[1] if len(date_range) == 2 else date_range[0]
+            
+            valid_mask = df_all_news['date'].dt.date.between(start_date_obj, end_date_obj) | df_all_news['date'].isna()
+            df_all_news = df_all_news[valid_mask]
+
             df_all_news['date'] = df_all_news['date'].dt.strftime('%m-%d-%Y')
         else:
             df_all_news['date'] = "無日期資料"
@@ -363,7 +375,6 @@ if run_button:
 
         st.write(f"✅ 共抓取 {len(news_results)} 筆新聞連結")
 
-        # --- 步驟 2：爬取文章內文 ---
         st.write("步驟 2/6：爬取文章內文")
         scraper = cloudscraper.create_scraper(browser={'browser': 'chrome', 'platform': 'windows', 'desktop': True})
         scraped_articles = []
@@ -392,7 +403,6 @@ if run_button:
         scrape_status_text.empty() 
         st.write(f"✅ 成功爬取 {len(scraped_articles)} / {len(news_results)} 篇文章正文")
 
-        # --- 步驟 3：過濾無效文章 ---
         st.write("步驟 3/6：過濾無效文章")
         batch_size = 5
         filter_results = []
@@ -427,7 +437,6 @@ if run_button:
             
         st.write(f"✅ 過濾完成，保留 {len(df_merge)} 篇具價值文章")
 
-        # --- 步驟 4：AI 分群 ---
         st.write("步驟 4/6：長摘與短摘分群")
         article_list = []
         for idx, row in df_merge.iterrows():
@@ -456,10 +465,8 @@ if run_button:
             elif len(articles) == 1:
                 short_articles.append(articles[0])
 
-        # --- 步驟 5：生成長篇與短篇摘要 ---
         st.write("步驟 5/6：生成長摘與短摘")
         
-        # 長篇摘要
         long_results = []
         if long_articles:
             progress_bar_long = st.progress(0)
@@ -468,12 +475,13 @@ if run_button:
                 long_status.text(f"正在進行長摘：{i}/{len(long_articles)}")
                 res = long_summary(group, client_genai, selected_model)
                 if res:
+                    dates = sorted(list(set([art["date"] for art in group["articles"] if "date" in art and art["date"] != "無日期資料"])))
+                    res["文章日期"] = ", ".join(dates) if dates else "無日期資料"
                     long_results.append(res)
                 progress_bar_long.progress(i / len(long_articles))
                 time.sleep(5)
             long_status.empty()
 
-        # 短篇摘要
         short_results = []
         if short_articles:
             progress_bar_short = st.progress(0)
@@ -490,7 +498,6 @@ if run_button:
                 time.sleep(5)
             short_status.empty()
 
-        # --- 步驟 6：格式處理與輸出 ---
         st.write("步驟 6/6：格式處理")
         
         df_long = pd.DataFrame(long_results)
@@ -524,76 +531,82 @@ if run_button:
                 if col in df_short.columns:
                     df_short[col] = df_short[col].apply(lambda x: wrap_text_smart(x, width=30))
 
+        # 將處理完成的資料存入 session_state 供獨立顯示區塊使用
+        st.session_state.df_long = df_long
+        st.session_state.df_short = df_short
+
         status.update(label="✅ 所有處理皆已完成！", state="complete", expanded=False)
 
-    if not df_long.empty or not df_short.empty:
-        st.success("🎉 分析完成！預覽結果如下：")
-        
-        # 建立安全的檔名前綴，替換掉空格
-        file_prefix = "_".join(keywords).replace(" ", "_")
-        current_date = datetime.now().strftime('%Y%m%d')
-        
-        tab1, tab2 = st.tabs(["長篇摘要 (多篇關聯)", "短篇摘要 (單一報導)"])
-        
-        with tab1:
-            if not df_long.empty:
-                st.dataframe(df_long)
-                csv_long = df_long.to_csv(index=False, encoding="utf-8-sig", doublequote=True).encode('utf-8-sig')
-                st.download_button(
-                    label="📥 下載長摘 CSV",
-                    data=csv_long,
-                    file_name=f"{file_prefix}_long_{current_date}.csv",
-                    mime="text/csv",
-                    use_container_width=True
-                )
-            else:
-                st.info("本次抓取無產生長篇摘要（沒有兩篇以上相關聯的文章）。")
+# ==========================================
+# 獨立的顯示與下載區塊
+# 已經從 run_button 區塊中移出，畫面不會再被清空
+# ==========================================
+if not st.session_state.df_long.empty or not st.session_state.df_short.empty:
+    st.success("🎉 分析完成！預覽結果如下：")
+    
+    file_prefix = "_".join(st.session_state.used_keywords).replace(" ", "_") if st.session_state.used_keywords else "summary"
+    current_date = datetime.now().strftime('%Y%m%d')
+    
+    tab1, tab2 = st.tabs(["長篇摘要 (多篇關聯)", "短篇摘要 (單一報導)"])
+    
+    with tab1:
+        if not st.session_state.df_long.empty:
+            # 調整欄位順序讓文章日期顯示在前面
+            cols_long = ['標題', '文章日期', '關鍵字', '長篇內文', '參考文獻']
+            display_df_long = st.session_state.df_long[[c for c in cols_long if c in st.session_state.df_long.columns]]
+            st.dataframe(display_df_long)
+            csv_long = display_df_long.to_csv(index=False, encoding="utf-8-sig", doublequote=True).encode('utf-8-sig')
+            st.download_button(
+                label="📥 下載長摘 CSV",
+                data=csv_long,
+                file_name=f"{file_prefix}_long_{current_date}.csv",
+                mime="text/csv",
+                use_container_width=True
+            )
+        else:
+            st.info("本次抓取無產生長篇摘要（沒有兩篇以上相關聯的文章）。")
 
-        with tab2:
-            if not df_short.empty:
-                st.dataframe(df_short)
-                csv_short = df_short.to_csv(index=False, encoding="utf-8-sig", doublequote=True).encode('utf-8-sig')
-                st.download_button(
-                    label="📥 下載短摘 CSV",
-                    data=csv_short,
-                    file_name=f"{file_prefix}_short_{current_date}.csv",
-                    mime="text/csv",
-                    use_container_width=True
-                )
-            else:
-                st.info("本次抓取無產生短篇摘要。")
+    with tab2:
+        if not st.session_state.df_short.empty:
+            st.dataframe(st.session_state.df_short)
+            csv_short = st.session_state.df_short.to_csv(index=False, encoding="utf-8-sig", doublequote=True).encode('utf-8-sig')
+            st.download_button(
+                label="📥 下載短摘 CSV",
+                data=csv_short,
+                file_name=f"{file_prefix}_short_{current_date}.csv",
+                mime="text/csv",
+                use_container_width=True
+            )
+        else:
+            st.info("本次抓取無產生短篇摘要。")
 
-        # ==========================================
-        # 視覺化預覽區塊 (比照 TechCrunch 格式)
-        # ==========================================
-        st.divider()
-        st.markdown("### 摘要預覽")
-        
-        if not df_long.empty:
-            st.markdown("#### 📚 長篇摘要")
-            for idx, row in df_long.iterrows():
-                with st.expander(f"📑 {row.get('標題', '無標題')}"):
-                    st.markdown(f"**【關鍵字】** {row.get('關鍵字', '')}")
-                    st.markdown("---")
-                    st.markdown(row.get('長篇內文', ''))
-                    st.markdown("---")
-                    st.markdown("**【參考文獻】**")
-                    st.text(row.get('參考文獻', ''))
-                    
-        if not df_short.empty:
-            st.markdown("#### 📝 短篇摘要")
-            for idx, row in df_short.iterrows():
-                with st.expander(f"📑 {row.get('中文標題', '無標題')} (原標題: {row.get('英文標題', '')})"):
-                    st.markdown(f"**【關鍵字】** {row.get('關鍵字', '')}")
-                    st.markdown("---")
-                    st.markdown("**【問題需求】**")
-                    st.markdown(row.get('問題需求', ''))
-                    st.markdown("**【解決手段】**")
-                    st.markdown(row.get('解決手段', ''))
-                    st.markdown("**【摘要結構】**")
-                    st.markdown(row.get('摘要結構', ''))
-                    st.markdown("---")
-                    st.markdown(f"[🔗 點此閱讀主文章原文]({row.get('參考連結', '')})")
-
-    else:
-        st.warning("沒有可輸出的資料。")
+    st.divider()
+    st.markdown("### 摘要預覽")
+    
+    if not st.session_state.df_long.empty:
+        st.markdown("#### 📚 長篇摘要")
+        for idx, row in st.session_state.df_long.iterrows():
+            with st.expander(f"📑 {row.get('標題', '無標題')}"):
+                st.markdown(f"**【文章日期】** {row.get('文章日期', '')}")
+                st.markdown(f"**【關鍵字】** {row.get('關鍵字', '')}")
+                st.markdown("---")
+                st.markdown(row.get('長篇內文', ''))
+                st.markdown("---")
+                st.markdown("**【參考文獻】**")
+                st.text(row.get('參考文獻', ''))
+                
+    if not st.session_state.df_short.empty:
+        st.markdown("#### 📝 短篇摘要")
+        for idx, row in st.session_state.df_short.iterrows():
+            with st.expander(f"📑 {row.get('中文標題', '無標題')} (原標題: {row.get('英文標題', '')})"):
+                st.markdown(f"**【文章日期】** {row.get('文章日期', '')}")
+                st.markdown(f"**【關鍵字】** {row.get('關鍵字', '')}")
+                st.markdown("---")
+                st.markdown("**【問題需求】**")
+                st.markdown(row.get('問題需求', ''))
+                st.markdown("**【解決手段】**")
+                st.markdown(row.get('解決手段', ''))
+                st.markdown("**【摘要結構】**")
+                st.markdown(row.get('摘要結構', ''))
+                st.markdown("---")
+                st.markdown(f"[🔗 點此閱讀主文章原文]({row.get('參考連結', '')})")
