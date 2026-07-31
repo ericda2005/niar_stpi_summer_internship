@@ -361,6 +361,17 @@ if run_button:
         df_all_news = df_all_news.drop_duplicates(subset=['link'])
         news_results = df_all_news.to_dict('records')
 
+        try:
+            url_quota = f"https://serpapi.com/account.json?api_key={serpapi_key}"
+            res_quota = requests.get(url_quota, timeout=10)
+            if res_quota.status_code == 200:
+                data_quota = res_quota.json()
+                searches_left = data_quota.get("plan_searches_left", "未知")
+                total_searches = data_quota.get("plan_searches_limit", 1000)
+                st.session_state.serpapi_quota = f"{searches_left} / {total_searches}"
+        except Exception:
+            pass
+
         st.write(f"✅ 共抓取 {len(news_results)} 筆新聞連結")
 
         # --- 步驟 2：爬取文章內文 ---
