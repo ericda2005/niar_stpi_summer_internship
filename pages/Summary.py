@@ -198,7 +198,32 @@ if "results_dict" not in st.session_state:
 # 側邊欄：設定 API Key
 with st.sidebar:
     st.header("⚙️ 系統設定")
-    serpapi_key = st.text_input("SerpApi Key", type="password")
+    if "serpapi_quota" not in st.session_state:
+        st.session_state.serpapi_quota = None
+
+    if serpapi_key:
+        if st.button("更新額度", use_container_width=True):
+            try:
+                # 修正端點：必須加上 .json
+                url = f"https://serpapi.com/account.json?api_key={serpapi_key}"
+                res = requests.get(url, timeout=10)
+                if res.status_code == 200:
+                    data = res.json()
+                    searches_left = data.get("plan_searches_left", "未知")
+                    total_searches = data.get("plan_searches_limit", 1000)
+                    st.session_state.serpapi_quota = f"{searches_left} / {total_searches}"
+                else:
+                    st.session_state.serpapi_quota = f"查詢失敗 (狀態碼: {res.status_code})"
+            except Exception as e:
+                st.session_state.serpapi_quota = f"連線錯誤: {e}"
+        
+        if st.session_state.serpapi_quota:
+            if "失敗" in st.session_state.serpapi_quota or "錯誤" in st.session_state.serpapi_quota:
+                st.error(st.session_state.serpapi_quota)
+            else:
+                st.success(f"🔍 剩餘額度：{st.session_state.serpapi_quota}")
+
+    st.divider()
     gemini_key = st.text_input("Gemini API Key", type="password")
 
 # ------------------------------------------
