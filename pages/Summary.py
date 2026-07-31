@@ -205,7 +205,7 @@ with st.sidebar:
         st.session_state.serpapi_quota = None
 
     if serpapi_key:
-        if st.button("更新額度", use_container_width=True):
+        if st.button("顯示 / 更新額度", use_container_width=True):
             try:
                 # 修正端點：必須加上 .json
                 url = f"https://serpapi.com/account.json?api_key={serpapi_key}"
@@ -224,7 +224,7 @@ with st.sidebar:
             if "失敗" in st.session_state.serpapi_quota or "錯誤" in st.session_state.serpapi_quota:
                 st.error(st.session_state.serpapi_quota)
             else:
-                st.success(f"🔍 剩餘額度：{st.session_state.serpapi_quota}")
+                st.success(f"剩餘額度：{st.session_state.serpapi_quota}")
 
     st.divider()
     gemini_key = st.text_input("Gemini API Key", type="password")
