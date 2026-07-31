@@ -11,7 +11,7 @@ st.markdown("""
 
 **一、TechTimes**
 * 按下搜尋鍵➡️抓取 Techtimes.com 首頁中不同板塊的文章
-* 針對 TechTimes 網站的特定板塊進行自動化爬蟲與摘要。
+* 選擇要進行摘要的板塊
 * 需於左側邊欄輸入 Gemini API Key。
 
 **二、TechCrunch**
