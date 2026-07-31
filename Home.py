@@ -15,7 +15,6 @@ st.markdown("""
         <li>按下搜尋鍵 ➡️ 抓取 Techtimes.com 首頁中不同板塊的文章</li>
         <li>選擇要進行長篇摘要的板塊</li>
         <li>需於左側邊欄輸入 <span style="color: #fe5f55; font-weight: bold;">Gemini API Key</span>。</li>
-        <li>
     </ol>
 </div>
 """, unsafe_allow_html=True)
