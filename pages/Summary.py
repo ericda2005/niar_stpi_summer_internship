@@ -373,8 +373,8 @@ if run_button:
         df_all_news = df_all_news.drop_duplicates(subset=['link'])
         news_results = df_all_news.to_dict('records')
 
-        st.write(f"✅ 共抓取 {len(news_results)} 筆新聞連結")
-        st.dataframe(df_all_news)
+        st.success(f"共抓取 {len(news_results)} 筆新聞連結")
+        st.dataframe(df_all_news[['link', 'title', 'source', 'date']])
 
         st.write("步驟 2/6：爬取文章內文")
         scraper = cloudscraper.create_scraper(browser={'browser': 'chrome', 'platform': 'windows', 'desktop': True})
@@ -386,7 +386,7 @@ if run_button:
             title = news.get("title", "無標題")
             news_url = news.get("link")
             date = news.get("date", "無日期資料")
-            scrape_status_text.text(f"正在擷取: {title[:40]}...")
+            scrape_status_text.text(f"正在爬取: {title[:40]}...")
 
             try:
                 res = scraper.get(news_url, timeout=15)
@@ -402,7 +402,8 @@ if run_button:
             progress_bar_scrape.progress((index + 1) / len(news_results))
 
         scrape_status_text.empty() 
-        st.write(f"✅ 成功爬取 {len(scraped_articles)} / {len(news_results)} 篇文章正文")
+        st.success(f"成功爬取 {len(scraped_articles)} / {len(news_results)} 篇文章正文")
+        st.dataframe(pd.DataFrame(scraped_articles)[['title', 'url', 'content', 'date']])
 
         st.write("步驟 3/6：過濾無效文章")
         batch_size = 5
@@ -435,8 +436,8 @@ if run_button:
             df_merge = df_merge.dropna(subset=['content']).reset_index(drop=True)
         else:
             df_merge = pd.DataFrame()
-            
-        st.write(f"✅ 過濾完成，保留 {len(df_merge)} 篇具價值文章")
+        st.success(f"過濾完成，保留 {len(df_merge)} 篇具價值文章")
+        st.dataframe(df_merge[['title', 'url', 'reason', 'content', 'date']])
 
         st.write("步驟 4/6：長摘與短摘分群")
         article_list = []
@@ -450,7 +451,7 @@ if run_button:
             })
         
         clusters = cluster_llm(article_list, client_genai, selected_model)
-        st.write(f"✅ 總共分成 {len(clusters)} 群")
+        st.success(f"總共分成 {len(clusters)} 群")
 
         long_articles = []
         short_articles = []
