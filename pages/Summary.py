@@ -374,6 +374,7 @@ if run_button:
         news_results = df_all_news.to_dict('records')
 
         st.write(f"✅ 共抓取 {len(news_results)} 筆新聞連結")
+        st.dataframe(df_all_news)
 
         st.write("步驟 2/6：爬取文章內文")
         scraper = cloudscraper.create_scraper(browser={'browser': 'chrome', 'platform': 'windows', 'desktop': True})
