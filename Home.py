@@ -2,7 +2,8 @@ import streamlit as st
 
 st.set_page_config(page_title="Home", layout="wide")
 
-st.title("國研院科政中心：115年度暑期實習計畫")
+st.title("跨媒體科技新聞自動化抓取與多文章 AI 分類摘要系統設計")
+st.subheader("國研院科政中心—115年度暑期實習計畫")
 st.divider()
 
 st.markdown("### 網頁操作指南")
