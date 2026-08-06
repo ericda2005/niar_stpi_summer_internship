@@ -214,8 +214,8 @@ def quota_section(serpapi_key):
 # ==========================================
 # Streamlit 介面與主邏輯
 # ==========================================
-st.set_page_config(page_title="AI 摘要系統", layout="wide")
-st.title("AI 摘要系統")
+st.set_page_config(page_title="關鍵字搜索與 AI 分類摘要", layout="wide")
+st.title("關鍵字搜索與 AI 分類摘要")
 
 # 初始化所有的 session_state 變數，確保畫面切換或更新時資料不會遺失
 if "results_dict" not in st.session_state:
