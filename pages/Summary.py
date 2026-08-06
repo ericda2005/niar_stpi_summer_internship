@@ -274,8 +274,11 @@ with col2:
 
 st.divider()
 
-scrape_mode = st.radio("請選擇爬取模式：", ["Beta (每個關鍵字僅爬取第 1 頁，消耗 1 次額度)", "All (爬取前 10 頁)"])
-test_mode = "Beta" in scrape_mode
+scrape_mode = st.radio("請選擇爬取模式：", [
+    "Beta (每個關鍵字僅爬取第 1 頁，消耗 1 次額度)",
+    "Medium (爬取前 5 頁)",
+    "All (爬取前 10 頁)"
+])
 
 col_start, col_stop = st.columns(2)
 
@@ -308,7 +311,12 @@ if run_button:
         all_results = []
         fetch_status_text = st.empty()
         
-        pages_to_fetch = 1 if test_mode else 10
+        if "Beta" in scrape_mode:
+            pages_to_fetch = 1
+        elif "Medium" in scrape_mode:
+            pages_to_fetch = 5
+        else:
+            pages_to_fetch = 10
 
         for kw in keywords:
             for page in range(pages_to_fetch):
