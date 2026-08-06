@@ -232,7 +232,7 @@ def long_summary(article_group, client, model_name):
 # ==========================================
 # Streamlit 介面與主邏輯
 # ==========================================
-st.set_page_config(page_title="TechTimes 自動化爬蟲與長摘", layout="wide")
+st.set_page_config(page_title="TechTimes 首頁自動化爬蟲長摘", layout="wide")
 
 # 側邊欄：設定 API Key
 with st.sidebar:
@@ -256,7 +256,7 @@ if 'scraped_data_list' not in st.session_state:
 if 'final_summary_df' not in st.session_state:
     st.session_state.final_summary_df = None
 
-st.title("首頁自動化爬蟲長摘：TechTimes.com")
+st.title("TechTimes 首頁自動化爬蟲長摘")
 
 # ------------------------------------------
 # 第一階段：獲取首頁板塊與文章網址
