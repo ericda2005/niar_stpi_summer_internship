@@ -250,7 +250,7 @@ def long_summary(client, article_group, model_name):
 # ==========================================
 # Streamlit 介面與主邏輯
 # ==========================================
-st.set_page_config(page_title="Techcrunch 自動化爬蟲與長摘", layout="wide")
+st.set_page_config(page_title="TechCrunch 首頁自動化爬蟲長摘", layout="wide")
 
 # 側邊欄：設定 API Key
 with st.sidebar:
@@ -274,7 +274,7 @@ if 'tc_scraped_data_list' not in st.session_state:
 if 'tc_final_summary_df' not in st.session_state:
     st.session_state.tc_final_summary_df = None
 
-st.title("首頁自動化爬蟲長摘：TechCrunch.com")
+st.title("TechCrunch 首頁自動化爬蟲長摘")
 
 # ------------------------------------------
 # 第一階段：獲取首頁板塊與文章網址
