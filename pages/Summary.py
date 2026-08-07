@@ -536,14 +536,14 @@ if run_button:
         st.session_state.df_long = df_long
         st.session_state.df_short = df_short
 
-        status.update(label="✅ 所有處理皆已完成！", state="complete", expanded=False)
+        status.update(label=" 所有處理皆已完成！", state="complete", expanded=False)
 
 # ==========================================
 # 獨立的顯示與下載區塊
 # 已經從 run_button 區塊中移出，畫面不會再被清空
 # ==========================================
 if not st.session_state.df_long.empty or not st.session_state.df_short.empty:
-    st.success("🎉 分析完成！預覽結果如下：")
+    st.success("分析完成！預覽結果如下：")
     
     file_prefix = "_".join(st.session_state.used_keywords).replace(" ", "_") if st.session_state.used_keywords else "summary"
     current_date = datetime.now().strftime('%Y%m%d')
