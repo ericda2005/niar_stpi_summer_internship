@@ -261,7 +261,7 @@ with col2:
     today = datetime.now().date()
     last_week = today - pd.Timedelta(days=7)
     
-    date_range = st.date_input("選擇查詢日期範圍", value=(last_week, today))
+    date_range = st.date_input("選擇查詢日期範圍", value=(last_week, today), max_value=today)
     
     if len(date_range) == 2:
         start_str = date_range[0].strftime("%m/%d/%Y")
