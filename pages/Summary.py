@@ -274,7 +274,7 @@ with col2:
 
 st.divider()
 
-pages_to_fetch_input = st.slider("請選擇每個關鍵字要爬取的頁數 (1頁消耗1次額度)：", min_value=1, max_value=10, value=10)
+pages_to_fetch_input = st.selectbox("請選擇每個關鍵字要爬取的頁數 (1頁消耗1次額度)：", options=list(range(1, 11)), index=9)
 
 col_start, col_stop = st.columns(2)
 
