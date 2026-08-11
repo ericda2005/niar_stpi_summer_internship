@@ -266,10 +266,10 @@ if "kw_input" not in st.session_state:
 
 # 2. 將熱門關鍵字移到最外層，獲得 100% 的版面寬度
 st.markdown('<p style="font-size: 14px; margin-bottom: 5px;">熱門關鍵字快速加入：</p>', unsafe_allow_html=True)
-hot_keywords = ["semiconductor", "energy", "artificial intelligence", "electric vehicle", "robot"]
+hot_keywords = ["semiconductor", "energy", "artificial intelligence", "electric vehicle", "robot", "generative ai", "metaverse"]
 
 # 依照單字長度給予不同的欄位寬度比例
-button_cols = st.columns([1.2, 0.8, 1.8, 1.2, 0.8])
+button_cols = st.columns([1.2, 0.8, 1.8, 1.2, 0.8, 1.2, 0.8])
 
 for i, kw in enumerate(hot_keywords):
     # 加入 use_container_width=True 讓按鈕排版更整齊
