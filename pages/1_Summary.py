@@ -125,28 +125,21 @@ def cluster_llm(article_list, gemini_client, model_name):
         print(f"分群失敗: {e}")
         return []
 
-def long_summary(article_group, gemini_client, model_name):
+def long_summary(article_group, gemini_client, model_name, custom_long_prompt):
     topic = article_group["主題名稱"]
     articles = article_group["articles"]
     cluster_urls = [art["url"] for art in articles]
 
     prompt = f"""
-    你現在是科技文獻摘要專家。請根據以下多篇探討同一主題的新聞內文，綜合生成以下 JSON 格式的繁體中文摘要：
-    {{
-        "標題": "自訂一個專業且涵蓋此事件的繁體中文標題",
-        "關鍵字": "列出5到10個關鍵字，以逗號分隔",
-        "長篇內文": "請撰寫一份字數大約在 800 至 1300 字之間的完整長篇報告。結構必須包含：1. 前言/引言（說明事件背景與核心意義）；2. 內文（深入剖析各篇報導的細節、技術、爭議或發展脈絡）；3. 總結（綜合評析此事件對產業或未來的影響）。",
-        "參考文獻": "將以下網址逐行排列：\\n" + "\\n".join(cluster_urls)
-    }}
+    {custom_long_prompt}
 
     主題：
     {topic}
     
     新聞資料：
     {json.dumps(articles, ensure_ascii=False)}
-
-    絕對不要輸出 Markdown 標記或其他文字。
     """
+    
     try:
         response = gemini_client.models.generate_content(
             model=model_name,
@@ -247,15 +240,53 @@ with st.sidebar:
         options=["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"],
         index=0
     )
+    
+    st.divider()
+    st.markdown("### ✍️ 自訂 Prompt 設定")
+    
+    default_long_prompt = """你現在是科技文獻摘要專家。請根據以下多篇探討同一主題的新聞內文，綜合生成以下 JSON 格式的繁體中文摘要：
+{
+    "標題": "自訂一個專業且涵蓋此事件的繁體中文標題",
+    "關鍵字": "列出5到10個關鍵字，以逗號分隔",
+    "長篇內文": "請撰寫一份字數大約在 800 至 1300 字之間的完整長篇報告。結構必須包含：1. 前言/引言（說明事件背景與核心意義）；2. 內文（深入剖析各篇報導的細節、技術、爭議或發展脈絡）；3. 總結（綜合評析此事件對產業或未來的影響）。",
+    "參考文獻": "將以下網址逐行排列：\\n" + "\\n".join(cluster_urls)
+}
+絕對不要輸出 Markdown 標記或其他文字。"""
+
+    custom_long_prompt = st.text_area("微調長篇摘要 Prompt", value=default_long_prompt, height=500)
 
 # ------------------------------------------
 # 搜尋條件設定與執行模式
 # ------------------------------------------
 st.markdown("### 🔍 搜尋條件設定")
+
+# 1. 初始化關鍵字的 session_state
+if "kw_input" not in st.session_state:
+    st.session_state.kw_input = ""
+
+# 2. 將熱門關鍵字移到最外層，獲得 100% 的版面寬度
+st.markdown('<p style="font-size: 14px; margin-bottom: 5px;">熱門關鍵字快速加入：</p>', unsafe_allow_html=True)
+hot_keywords = ["semiconductor", "energy", "artificial intelligence", "electric vehicle", "robot"]
+
+# 依照單字長度給予不同的欄位寬度比例
+button_cols = st.columns([1.2, 0.8, 1.8, 1.2, 0.8])
+
+for i, kw in enumerate(hot_keywords):
+    # 加入 use_container_width=True 讓按鈕排版更整齊
+    if button_cols[i].button(kw, use_container_width=True):
+        # 點擊時，將關鍵字附加到 session_state 中
+        if st.session_state.kw_input:
+            if kw not in st.session_state.kw_input: # 避免重複加入
+                st.session_state.kw_input += f",{kw}"
+        else:
+            st.session_state.kw_input = kw
+
+# 3. 建立原本的輸入框與日期排版
 col1, col2 = st.columns([2, 1])
 
 with col1:
-    keyword_input = st.text_input("輸入搜尋關鍵字 (多個請用半形逗號分隔)")
+    # 透過 key="kw_input" 將輸入框與 session_state 綁定
+    keyword_input = st.text_input("輸入搜尋關鍵字 (多個請用半形逗號分隔)", key="kw_input")
 
 with col2:
     today = datetime.now().date()
@@ -474,7 +505,7 @@ if run_button:
             long_status = st.empty()
             for i, group in enumerate(long_articles, start=1):
                 long_status.text(f"正在進行長摘：{i}/{len(long_articles)}")
-                res = long_summary(group, client_genai, selected_model)
+                res = long_summary(group, client_genai, selected_model, custom_long_prompt)
                 if res:
                     dates = sorted(list(set([art["date"] for art in group["articles"] if "date" in art and art["date"] != "無日期資料"])))
                     res["文章日期"] = ", ".join(dates) if dates else "無日期資料"
