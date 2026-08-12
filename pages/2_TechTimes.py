@@ -9,9 +9,7 @@ import re
 from google import genai
 from datetime import datetime
 
-# ==========================================
-# 輔助函式：文字換行處理
-# ==========================================
+# 輸出格式處理
 def wrap_text(text, width):
     if not isinstance(text, str) or not text:
         return text
@@ -50,9 +48,7 @@ def wrap_text(text, width):
         
     return '\n'.join(lines)
 
-# ==========================================
-# 爬蟲與摘要函式
-# ==========================================
+# 爬蟲與摘要
 def get_techtimes_categories_and_links(homepage_url="https://www.techtimes.com/"):
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'}
     try:
@@ -229,12 +225,10 @@ def long_summary(article_group, client, model_name):
     return final_result
 
 
-# ==========================================
 # Streamlit 介面與主邏輯
-# ==========================================
 st.set_page_config(page_title="TechTimes 首頁自動化爬蟲長摘", layout="wide")
 
-# 側邊欄：設定 API Key
+# 側邊欄
 with st.sidebar:
     st.header("⚙️ 系統設定")
     api_key_input = st.text_input("Gemini API Key", type="password")
@@ -258,9 +252,7 @@ if 'final_summary_df' not in st.session_state:
 
 st.title("TechTimes 首頁自動化爬蟲長摘")
 
-# ------------------------------------------
-# 第一階段：獲取首頁板塊與文章網址
-# ------------------------------------------
+# 1. 獲取首頁板塊與文章網址
 col1, col2 = st.columns([2, 1])
 with col1:
     url_input = st.text_input("首頁網址", value="https://www.techtimes.com/")
@@ -277,9 +269,8 @@ with col2:
             else:
                 st.warning("未抓取到任何板塊資訊。")
 
-# ------------------------------------------
-# 第二階段：選擇特定板塊進行爬取
-# ------------------------------------------
+
+# 2. 選擇特定板塊進行爬取
 if st.session_state.category_dict:
     st.divider()
     
@@ -287,7 +278,6 @@ if st.session_state.category_dict:
     selected_categories = st.multiselect("請選擇欲爬取的板塊（可複選）", options=available_categories)
     
     if selected_categories:
-        # 將選取的板塊字典攤平成列表
         st.session_state.article_urls = []
         for cat in selected_categories:
             st.session_state.article_urls.extend(st.session_state.category_dict[cat])
@@ -295,18 +285,15 @@ if st.session_state.category_dict:
         st.write(f"在選定的板塊中，共找到 **{len(st.session_state.article_urls)}** 篇文章。")
         scrape_mode = st.radio("請選擇爬取模式：", ["Beta (僅爬取第 1 篇測試)", "All (爬取所有選定文章)"])
         
-        # 將開始與中斷按鈕並排
         col_start, col_stop = st.columns(2)
         
         with col_stop:
-            # 點擊此按鈕會觸發 Streamlit 重新整理，自然中斷下方的迴圈執行
             st.button("中斷 / 重新開始", use_container_width=True)
             
         with col_start:
             if st.button("開始爬取", type="primary", use_container_width=True):
                 urls_to_scrape = st.session_state.article_urls[:1] if "Beta" in scrape_mode else st.session_state.article_urls
                 
-                # 每次按下開始爬取，就清空先前的暫存資料
                 st.session_state.scraped_data_list = []
                 st.session_state.scraped_df = None
                 
@@ -321,7 +308,6 @@ if st.session_state.category_dict:
                     data = scrape_techtimes_with_refs(target_url, status_text=status_text, current_article_info=current_info)
                     if data:
                         st.session_state.scraped_data_list.extend(data)
-                        # 邊爬邊更新 DataFrame 並寫入 session_state
                         st.session_state.scraped_df = pd.DataFrame(st.session_state.scraped_data_list)
                         
                     progress_bar.progress(i / len(urls_to_scrape))
@@ -334,18 +320,14 @@ if st.session_state.scraped_df is not None and not st.session_state.scraped_df.e
     st.markdown("### 爬取結果預覽")
     st.dataframe(st.session_state.scraped_df, use_container_width=True)
 
-# ------------------------------------------
-# 第三階段：LLM 生成長篇摘要與自動換行
-# ------------------------------------------
+# 3. LLM 生成長篇摘要與自動換行
 if st.session_state.scraped_df is not None and not st.session_state.scraped_df.empty:
     st.divider()
     st.write(f"已準備好 **{st.session_state.scraped_df['主文章網址'].nunique()}** 個主題的資料可供摘要。")
     
-    # 將開始與中斷按鈕並排
     col_sum_start, col_sum_stop = st.columns(2)
     
     with col_sum_stop:
-        # 加入 key="stop_summary" 避免與爬蟲階段的按鈕發生 ID 衝突
         st.button("中斷 / 重新開始", key="stop_summary", use_container_width=True)
         
     with col_sum_start:
@@ -384,7 +366,6 @@ if st.session_state.scraped_df is not None and not st.session_state.scraped_df.e
                         
                     summary_progress.progress(i / total_groups)
                     
-                    # 延遲拉長，保護 API 免額度速率限制
                     time.sleep(15)
                     
                 summary_status.success("所有摘要生成完畢，正在處理格式")
@@ -411,9 +392,7 @@ if st.session_state.scraped_df is not None and not st.session_state.scraped_df.e
                     st.session_state.final_summary_df = dated_df
                     st.success("格式處理完成！")
 
-# ------------------------------------------
-# 第四階段：顯示與下載結果
-# ------------------------------------------
+# 4. 顯示與下載結果
 if st.session_state.final_summary_df is not None and not st.session_state.final_summary_df.empty:
     st.divider()
     
@@ -422,17 +401,14 @@ if st.session_state.final_summary_df is not None and not st.session_state.final_
         st.markdown("### 摘要總覽")
     
     with col_dl:
-        # 產生 yyyymmdd 格式的日期
         current_date = datetime.now().strftime('%Y%m%d')
 
         categories_str = "_".join(selected_categories) if selected_categories else "all"
         
         file_name = f"{current_date}_TechTimes_{categories_str}.csv"
         
-        # 轉成 CSV 格式 (utf-8-sig 確保 Excel 開啟不亂碼)
         csv_summary = st.session_state.final_summary_df.to_csv(index=False, encoding="utf-8-sig", doublequote=True).encode("utf-8-sig")
 
-        # 建立滿版下載按鈕
         st.download_button(
             label="📥 下載 CSV 檔案", 
             data=csv_summary, 
@@ -440,11 +416,9 @@ if st.session_state.final_summary_df is not None and not st.session_state.final_
             mime="text/csv",
             use_container_width=True
         )
-
-    # 顯示表格
+        
     st.dataframe(st.session_state.final_summary_df, use_container_width=True)
     
-    # 新增的摘要預覽區塊
     st.markdown("### 摘要預覽")
     for i, row in st.session_state.final_summary_df.iterrows():
         with st.expander(f"📑 {row['標題']} (原標題: {row['英文標題']})"):
