@@ -2,8 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Home", layout="wide")
 
-st.title("跨媒體科技新聞自動化抓取與多文章 AI 分類摘要系統設計")
-st.title("or 加速科技新聞採集流程：跨平台爬蟲與大語言模型摘要應用")
+st.title("新興科技新聞採集： 跨媒體自動化抓取與 AI 分類摘要設計")
 st.subheader("國研院科政中心 — 115年度暑期實習計畫")
 st.divider()
 
@@ -42,19 +41,6 @@ st.markdown("""
     </ol>
 </div>
 """, unsafe_allow_html=True)
-
-#st.markdown("""
-#<div style="background-color: #495867; color: #fcfcfc; padding: 20px; border-radius: 10px; margin-top: 10px;">
-    #<h4 style="margin-top: 0px;">四、通用操作步驟</h4>
-    #<ol style="margin-bottom: 0px;">
-        #<li>由左側邊欄切換至目標功能頁面。</li>
-        #<li>展開左側邊欄的「⚙️ 系統設定」，確認 API Key 已輸入。</li>
-        #<li>依據頁面指示設定搜尋關鍵字、網址或日期區間。</li>
-        #<li>點擊執行按鈕，系統將自動進行爬取與 AI 分析。</li>
-        #<li>處理完成後，可於頁面最下方檢視詳細的視覺化預覽，或直接點擊按鈕下載 CSV 檔。</li>
-    #</ol>
-#</div>
-#""", unsafe_allow_html=True)
 
 st.markdown("""
 <div style="background-color: #495867; color: #fcfcfc; padding: 20px; border-radius: 10px; margin-top: 10px;">
