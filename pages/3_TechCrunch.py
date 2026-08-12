@@ -9,9 +9,7 @@ import re
 from google import genai
 from datetime import datetime
 
-# ==========================================
-# 輔助函式：文字換行處理
-# ==========================================
+# 輸出格式處理
 def wrap_text(text, width):
     if not isinstance(text, str) or not text:
         return text
@@ -50,9 +48,7 @@ def wrap_text(text, width):
         
     return '\n'.join(lines)
 
-# ==========================================
-# 爬蟲與摘要函式
-# ==========================================
+# 爬蟲與摘要
 def get_techcrunch_categories_and_links(homepage_url="https://techcrunch.com/"):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
@@ -233,7 +229,6 @@ def long_summary(client, article_group, model_name):
         contents=prompt
     )
 
-    # 加上 strict=False 防止 JSON 報錯
     generated_data = json.loads(response.text.strip().replace("```json", "").replace("```", ""), strict=False)
 
     final_result = {
@@ -246,13 +241,10 @@ def long_summary(client, article_group, model_name):
     }
     return final_result
 
-
-# ==========================================
 # Streamlit 介面與主邏輯
-# ==========================================
 st.set_page_config(page_title="TechCrunch 首頁自動化爬蟲長摘", layout="wide")
 
-# 側邊欄：設定 API Key
+# 側邊欄
 with st.sidebar:
     st.header("⚙️ 系統設定")
     api_key_input = st.text_input("Gemini API Key", type="password")
@@ -262,7 +254,7 @@ with st.sidebar:
         index=0
     )
 
-# 初始化 session_state (TechCrunch 專用)
+# 初始化 session_state
 if 'tc_category_dict' not in st.session_state:
     st.session_state.tc_category_dict = {}
 if 'tc_article_urls' not in st.session_state:
@@ -276,9 +268,8 @@ if 'tc_final_summary_df' not in st.session_state:
 
 st.title("TechCrunch 首頁自動化爬蟲長摘")
 
-# ------------------------------------------
-# 第一階段：獲取首頁板塊與文章網址
-# ------------------------------------------
+
+# 1. 獲取首頁板塊與文章網址
 col1, col2 = st.columns([2, 1])
 with col1:
     url_input = st.text_input("首頁網址", value="https://techcrunch.com/")
@@ -295,9 +286,7 @@ with col2:
             else:
                 st.warning("未抓取到任何板塊資訊。")
 
-# ------------------------------------------
-# 第二階段：選擇特定板塊進行爬取
-# ------------------------------------------
+# 2. 選擇特定板塊進行爬取
 if st.session_state.tc_category_dict:
     st.divider()
     
@@ -312,7 +301,6 @@ if st.session_state.tc_category_dict:
         st.write(f"在選定的板塊中，共找到 **{len(st.session_state.tc_article_urls)}** 篇文章。")
         scrape_mode = st.radio("請選擇爬取模式：", ["Beta (僅爬取第 1 篇測試)", "All (爬取所有選定文章)"])
         
-        # 將開始與中斷按鈕並排
         col_start, col_stop = st.columns(2)
         
         with col_stop:
@@ -348,9 +336,7 @@ if st.session_state.tc_scraped_df is not None and not st.session_state.tc_scrape
     st.markdown("### 爬取結果預覽")
     st.dataframe(st.session_state.tc_scraped_df, use_container_width=True)
 
-# ------------------------------------------
-# 第三階段：LLM 生成長篇摘要與自動換行
-# ------------------------------------------
+# 3. LLM 生成長篇摘要與自動換行
 if st.session_state.tc_scraped_df is not None and not st.session_state.tc_scraped_df.empty:
     st.divider()
     st.write(f"已準備好 **{st.session_state.tc_scraped_df['主文章網址'].nunique()}** 個主題的資料可供摘要。")
@@ -358,7 +344,6 @@ if st.session_state.tc_scraped_df is not None and not st.session_state.tc_scrape
     col_sum_start, col_sum_stop = st.columns(2)
     
     with col_sum_stop:
-        # 使用獨立的 key 避免按鈕衝突
         st.button("中斷 / 重新開始", key="stop_summary", use_container_width=True)
         
     with col_sum_start:
@@ -397,7 +382,7 @@ if st.session_state.tc_scraped_df is not None and not st.session_state.tc_scrape
                             st.error(f"摘要生成失敗 ({main_title}): {e}")
                             
                         summary_progress.progress(i / total_groups)
-                        time.sleep(15)  # 避免 API 限制
+                        time.sleep(15)
                         
                     summary_status.success("所有摘要生成完畢，正在處理格式")
                     
@@ -426,9 +411,8 @@ if st.session_state.tc_scraped_df is not None and not st.session_state.tc_scrape
                 except Exception as e:
                     st.error(f"Gemini 初始化或執行發生錯誤：{e}")
 
-# ------------------------------------------
-# 第四階段：顯示與下載結果
-# ------------------------------------------
+
+# 4. 顯示與下載結果
 if st.session_state.tc_final_summary_df is not None and not st.session_state.tc_final_summary_df.empty:
     st.divider()
     
