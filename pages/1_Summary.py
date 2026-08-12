@@ -11,9 +11,7 @@ import re
 from datetime import datetime
 import requests
 
-# ==========================================
-# 輔助函式：文字換行處理
-# ==========================================
+# 輸出格式處理
 def wrap_text_smart(text, width):
     if not isinstance(text, str) or not text:
         return text
@@ -52,9 +50,7 @@ def wrap_text_smart(text, width):
 
     return '\n'.join(lines)
 
-# ==========================================
-# LLM 處理函式
-# ==========================================
+# LLM 過濾
 def filter_llm(article_list, gemini_client, model_name):
     prompt = f"""
     你是一個科技文獻審查員。請檢視以下清單。
@@ -89,6 +85,7 @@ def filter_llm(article_list, gemini_client, model_name):
         print(f"過濾失敗: {e}")
         return []
 
+# LLM 分群
 def cluster_llm(article_list, gemini_client, model_name):
     prompt = f"""
     你是一位科技情報分析師。請閱讀以下 {len(article_list)} 篇新聞的完整內文。
@@ -125,6 +122,7 @@ def cluster_llm(article_list, gemini_client, model_name):
         print(f"分群失敗: {e}")
         return []
 
+# LLM 長摘
 def long_summary(article_group, gemini_client, model_name, custom_long_prompt):
     topic = article_group["主題名稱"]
     articles = article_group["articles"]
@@ -150,6 +148,7 @@ def long_summary(article_group, gemini_client, model_name, custom_long_prompt):
     except Exception:
         return {}
 
+# LLM 短摘
 def short_summary(article, gemini_client, model_name):
     prompt = f"""
     你現在是科技文獻摘要專家。請根據內文生成以下 JSON 格式的繁體中文摘要：
@@ -179,9 +178,7 @@ def short_summary(article, gemini_client, model_name):
     except Exception:
         return {}
 
-# ==========================================
-# 局部刷新元件 (Fragment)
-# ==========================================
+# 局部刷新 (Fragment)
 @st.fragment
 def quota_section(serpapi_key):
     if st.button("顯示 / 更新額度", use_container_width=True):
@@ -204,13 +201,11 @@ def quota_section(serpapi_key):
         else:
             st.success(f"剩餘額度：{st.session_state.serpapi_quota}")
 
-# ==========================================
 # Streamlit 介面與主邏輯
-# ==========================================
 st.set_page_config(page_title="關鍵字搜索與 AI 分類摘要", layout="wide")
 st.title("關鍵字搜索與 AI 分類摘要")
 
-# 初始化所有的 session_state 變數，確保畫面切換或更新時資料不會遺失
+# 初始化所有 session_state ，確保畫面切換或更新時資料不會遺失
 if "results_dict" not in st.session_state:
     st.session_state.results_dict = {}
 if "df_long" not in st.session_state:
@@ -222,13 +217,12 @@ if "used_keywords" not in st.session_state:
 if "serpapi_quota" not in st.session_state:
     st.session_state.serpapi_quota = None
 
-# 側邊欄：設定 API Key
+# 側邊欄
 with st.sidebar:
     st.header("⚙️ 系統設定")
 
     serpapi_key = st.text_input("SerpApi Key", type="password")
     
-    # 呼叫 Fragment 函式處理額度按鈕，避免中斷主程式
     if serpapi_key:
         quota_section(serpapi_key)
 
@@ -255,37 +249,27 @@ with st.sidebar:
 
     custom_long_prompt = st.text_area("長摘 Prompt", value=default_long_prompt, height=500)
 
-# ------------------------------------------
-# 搜尋條件設定與執行模式
-# ------------------------------------------
 st.markdown("### 🔍 搜尋條件設定")
 
-# 1. 初始化關鍵字的 session_state
 if "kw_input" not in st.session_state:
     st.session_state.kw_input = ""
 
-# 2. 將熱門關鍵字移到最外層，獲得 100% 的版面寬度
 st.markdown('<p style="font-size: 14px; margin-bottom: 5px;">熱門關鍵字快速加入：</p>', unsafe_allow_html=True)
 hot_keywords = ["semiconductor", "energy", "artificial intelligence", "electric vehicle", "robot", "generative ai", "metaverse"]
 
-# 依照單字長度給予不同的欄位寬度比例
 button_cols = st.columns([1.2, 0.8, 1.8, 1.2, 0.8, 1.2, 0.8])
 
 for i, kw in enumerate(hot_keywords):
-    # 加入 use_container_width=True 讓按鈕排版更整齊
     if button_cols[i].button(kw, use_container_width=True):
-        # 點擊時，將關鍵字附加到 session_state 中
         if st.session_state.kw_input:
-            if kw not in st.session_state.kw_input: # 避免重複加入
+            if kw not in st.session_state.kw_input:
                 st.session_state.kw_input += f",{kw}"
         else:
             st.session_state.kw_input = kw
 
-# 3. 建立原本的輸入框與日期排版
 col1, col2 = st.columns([2, 1])
 
 with col1:
-    # 透過 key="kw_input" 將輸入框與 session_state 綁定
     keyword_input = st.text_input("輸入搜尋關鍵字 (多個請用半形逗號分隔)", key="kw_input")
 
 with col2:
@@ -389,7 +373,6 @@ if run_button:
             except TypeError:
                 df_all_news['date'] = df_all_news['date'].dt.tz_localize('UTC').dt.tz_convert('Asia/Taipei')
                 
-            # 新增嚴格日期過濾機制
             start_date_obj = date_range[0]
             end_date_obj = date_range[1] if len(date_range) == 2 else date_range[0]
             
@@ -563,16 +546,12 @@ if run_button:
                 if col in df_short.columns:
                     df_short[col] = df_short[col].apply(lambda x: wrap_text_smart(x, width=30))
 
-        # 將處理完成的資料存入 session_state 供獨立顯示區塊使用
         st.session_state.df_long = df_long
         st.session_state.df_short = df_short
 
         status.update(label=" 所有處理皆已完成！", state="complete", expanded=False)
 
-# ==========================================
 # 獨立的顯示與下載區塊
-# 已經從 run_button 區塊中移出，畫面不會再被清空
-# ==========================================
 if not st.session_state.df_long.empty or not st.session_state.df_short.empty:
     st.success("分析完成！預覽結果如下：")
     
@@ -583,7 +562,6 @@ if not st.session_state.df_long.empty or not st.session_state.df_short.empty:
     
     with tab1:
         if not st.session_state.df_long.empty:
-            # 調整欄位順序讓文章日期顯示在前面
             cols_long = ['標題', '文章日期', '關鍵字', '長篇內文', '參考文獻']
             display_df_long = st.session_state.df_long[[c for c in cols_long if c in st.session_state.df_long.columns]]
             st.dataframe(display_df_long)
