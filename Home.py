@@ -54,7 +54,7 @@ story_url = st.text_input("輸入合輯網址", label_visibility="collapsed")
 # ==========================================
 # 階段一：爬取標題、發文日期與解析 jslog 取得真實網址
 # ==========================================
-if st.button("1. 取得新聞清單", type="primary"):
+if st.button("取得新聞清單", type="primary"):
     if not story_url:
         st.warning("請先輸入網址")
         st.stop()
@@ -166,7 +166,7 @@ if not st.session_state.news_list_df.empty:
     # ==========================================
     selected_rows = edited_df[edited_df["選取"] == True]
     
-    if st.button("2. 開始爬取", type="primary"):
+    if st.button("開始爬取", type="primary"):
         if selected_rows.empty:
             st.warning("請至少勾選一篇文章。")
         else:
@@ -263,7 +263,7 @@ if st.session_state.preview_results:
             if item["狀態"] == "成功":
                 safe_title = sanitize_filename(item["標題"])
                 st.download_button(
-                    label="📥 下載單篇",
+                    label="下載單篇",
                     data=item["完整單篇內容"].encode('utf-8-sig'),
                     file_name=f"{safe_title}_{current_date}.txt",
                     key=f"dl_{i}"
@@ -300,6 +300,7 @@ if st.session_state.preview_results:
             data=zip_data,
             file_name=f"News_All_{current_date}.zip",
             mime="application/zip",
+            type="primary",
             use_container_width=True
         )
         
@@ -309,6 +310,5 @@ if st.session_state.preview_results:
             data=st.session_state.export_text.encode('utf-8-sig'),
             file_name=f"{current_date}.txt",
             mime="text/plain",
-            type="primary",
             use_container_width=True
         )
