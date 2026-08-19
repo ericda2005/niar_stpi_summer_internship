@@ -48,8 +48,8 @@ def sanitize_filename(name):
     return re.sub(r'[\\/*?:"<>|]', "", name)
 
 # 將標題改為 Markdown 以放大字體，並隱藏原本 text_input 的 label
-st.markdown("#### 🔗 輸入合輯網址")
-story_url = st.text_input("輸入合輯網址", label_visibility="collapsed")
+st.markdown("#### 🔗 貼上網址")
+story_url = st.text_input("貼上網址", label_visibility="collapsed")
 
 # ==========================================
 # 階段一：爬取標題、發文日期與解析 jslog 取得真實網址
